@@ -147,7 +147,8 @@ func main() {
 		RegistrySize:  120*20,
 	}) */
 
-	event := "func (f *Filter) ValidateEvent(event string) (bool, error) { if"
+	//event := "func (f *Filter) ValidateEvent(event string) (bool, error) { if"
+	event := `{"name":"holly", "age":40, "addr":"abcd, suzhou, js, China"}`
 
 	///
 
@@ -155,8 +156,8 @@ func main() {
 	check(err)
 	datStr := string(dat)
 
-	imax := 1 //1000
-	jmax := 1 //10000
+	imax := 1000
+	jmax := 10000
 
 	for i := 0; i < imax; i++ {
 		filter := NewFilter()

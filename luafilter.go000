@@ -84,4 +84,19 @@ func main() {
 	if err != nil || !isValid {
 		panic(err.Error())
 	}
+	/*
+	
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		event := scanner.Text()
+		isValid, err := filter.ValidateEvent(event)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		if isValid {
+			println(event)
+		}
+	}
+	*/
 }
