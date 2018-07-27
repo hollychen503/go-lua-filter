@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/yuin/gopher-lua"
+	luajson "layeh.com/gopher-json"
 )
 
 type Filter struct {
@@ -18,6 +19,7 @@ type Filter struct {
 
 func NewFilter() *Filter {
 	state := lua.NewState()
+	luajson.Preload(state)
 
 	filter := &Filter{
 		state: state,
@@ -75,6 +77,59 @@ func check(e error) {
 	}
 }
 
+func TestSimple() {
+	const str = `
+	local json = require("json")
+	assert(type(json) == "table")
+	assert(type(json.decode) == "function")
+	assert(type(json.encode) == "function")
+	assert(json.encode(true) == "true")
+	assert(json.encode(1) == "1")
+	assert(json.encode(-10) == "-10")
+	assert(json.encode(nil) == "{}")
+	local obj = {"a",1,"b",2,"c",3}
+	local jsonStr = json.encode(obj)
+	local jsonObj = json.decode(jsonStr)
+	for i = 1, #obj do
+		assert(obj[i] == jsonObj[i])
+	end
+	local obj = {name="Tim",number=12345}
+	local jsonStr = json.encode(obj)
+	local jsonObj = json.decode(jsonStr)
+	assert(obj.name == jsonObj.name)
+	assert(obj.number == jsonObj.number)
+	local obj = {"a","b",what="c",[5]="asd"}
+	local jsonStr = json.encode(obj)
+	local jsonObj = json.decode(jsonStr)
+	assert(obj[1] == jsonObj["1"])
+	assert(obj[2] == jsonObj["2"])
+	assert(obj.what == jsonObj["what"])
+	assert(obj[5] == jsonObj["5"])
+	assert(json.decode("null") == nil)
+	assert(json.decode(json.encode({person={name = "tim",}})).person.name == "tim")
+	local obj = {
+		abc = 123,
+		def = nil,
+	}
+	local obj2 = {
+		obj = obj,
+	}
+	obj.obj2 = obj2
+	assert(json.encode(obj) == nil)
+	local a = {}
+	for i=1, 5 do
+		a[i] = i
+	end
+	assert(json.encode(a) == "[1,2,3,4,5]")
+	`
+	s := lua.NewState()
+	luajson.Preload(s)
+	if err := s.DoString(str); err != nil {
+		panic(err)
+	}
+	log.Println("OK")
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		println("provide filter script")
@@ -93,6 +148,7 @@ func main() {
 	}) */
 
 	event := "func (f *Filter) ValidateEvent(event string) (bool, error) { if"
+
 	///
 
 	dat, err := ioutil.ReadFile(os.Args[1])
@@ -131,6 +187,7 @@ func main() {
 	fmt.Println("used ", diff, "nano seconds, ", (float64(diff) / (float64)(time.Second)), "seconds")
 	fmt.Println(float64(imax*jmax)/(float64(diff)/(float64)(time.Second)), " req per second")
 
+	TestSimple()
 	/*
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
